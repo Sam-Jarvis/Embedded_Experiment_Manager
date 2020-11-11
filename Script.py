@@ -1,3 +1,5 @@
+import os
+
 class Script:
     """Represents a pyhton script in storage"""
 
@@ -5,5 +7,6 @@ class Script:
         self.name = name
         self.path = path
 
-    def getPath():
-        pass
+    def deleteScript(self):
+       if os.path.exists(self.path):
+           os.remove(self.path)

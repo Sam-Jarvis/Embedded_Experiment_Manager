@@ -2,12 +2,15 @@ import configparser
 import string
 import re
 import os, stat
+import getpass
 
 import Actuator
+import Script
 import Sensor
 # actuator re pattern: ^(actuator)\d+$
 # sensor re pattern: ^(sensor)\d{1,}$
 
+system_user = getpass.getuser()
 parser = configparser.ConfigParser()
 actuators = []
 sensors = []
@@ -55,7 +58,14 @@ class Config:
                     intensity = parser.getint(sec, opt)
             if typ:
                 actuator = []
-                a = Actuator.Actuator(name, pin)
+
+                activate_name, activate_path = self.generateScript(system_user, name, True, pin)
+                activate = Script.Script(activate_name, activate_path)
+
+                deactivate_name, deactivate_path = self.generateScript(system_user, name, False, pin)
+                deactivate = Script.Script(deactivate_name, deactivate_path)
+
+                a = Actuator.Actuator(name, pin, activate, deactivate)
                 actuator.append(a)
                 actuator.append(self.limitFrequency(frequency))
                 actuator.append(length)
@@ -65,23 +75,19 @@ class Config:
                 s = Sensor.Sensor(name, pin)
                 sensors.append(s)
 
-    def minutesToHours(self, minutes):
-        hours = int(minutes / 60)
-        minutes = minutes % 60
-        return (hours, minutes)
+    def generateScript(self, user, act_name, script_tpe, pin, root="home", folder="gpio_scripts"):
 
-    def generateScript(self, user, act_name, script_type, pin, root="home", folder="gpio_scripts"):
-
-        path = f"/{root}/{user}/.{folder}"
+        path = f"/{root}/ubuntu/.{folder}"
+        # path = f"/{root}/{user}/.{folder}"
         script_type = str()
-        name = act_name.replace(" ", "_")
+        name = act_name.replace(" ", "_").replace("\"", "")
         full_path = str()
 
-        if script_type:
-            script_type = "gpio_out_activate.py"
+        if script_tpe:
+            script_type = f"{os.getcwd()}/scripts/gpio_out_activate.py"
             name += "_activate"
         else:
-            script_type = "gpio_out_deactivate.py"
+            script_type = f"{os.getcwd()}/scripts/gpio_out_deactivate.py"
             name += "_deactivate"
 
         script = f"sudo python3 {script_type} {pin}"
@@ -90,14 +96,18 @@ class Config:
             os.mkdir(path)
         elif os.path.exists(path):
             full_path = f"{path}/{name}.sh"
-            with open(full_path, "w") as bash_script:
-                bash_script.write(script)
-            os.chmod(full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+            if not os.path.exists(full_path):
+                with open(full_path, "w") as bash_script:
+                    bash_script.write(script)
+                os.chmod(full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
-        return full_path
+        return name, full_path
 
     def getLogFrequency():
         return sensor_log_frequency
+
+    def getActuators(self):
+        return actuators
 
     def getSensors(self):
         return sensors
