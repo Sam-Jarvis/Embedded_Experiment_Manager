@@ -1,0 +1,1 @@
+sudo python3 gpio_out_deactivate.py 18
