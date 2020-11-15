@@ -10,6 +10,7 @@ import Sensor
 # actuator re pattern: ^(actuator)\d+$
 # sensor re pattern: ^(sensor)\d{1,}$
 
+# TODO: This is current not used, i.e. redundant
 system_user = getpass.getuser()
 parser = configparser.ConfigParser()
 actuators = []
@@ -25,14 +26,6 @@ class Config:
         if intensity > 100:
             return 100
         return intensity
-
-    def limitFrequency(self, frequency):
-        if frequency > 0:
-            return int(round(24 / frequency))
-        elif frequency == 0:
-            return 0
-        else:
-            return -1
 
     # TODO: finish once generate script is done
     def parse(self):
@@ -67,7 +60,7 @@ class Config:
 
                 a = Actuator.Actuator(name, pin, activate, deactivate)
                 actuator.append(a)
-                actuator.append(self.limitFrequency(frequency))
+                actuator.append(frequency)
                 actuator.append(length)
                 actuator.append(self.limitIntensity(intensity))
                 actuators.append(actuator)

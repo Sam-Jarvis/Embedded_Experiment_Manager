@@ -10,3 +10,8 @@ class Script:
     def deleteScript(self):
        if os.path.exists(self.path):
            os.remove(self.path)
+
+    def execute(self):
+        bash_location = "/bin/bash"
+        command = f"sudo {bash_location} {self.path}"
+        os.system(command)
