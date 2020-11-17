@@ -71,10 +71,17 @@ class Scheduler:
 
         self.cron.write()
 
+
+    def scheduleActuators(self, actuators: list):
+        for act in actuators:
+            self.scheduleActuator(act[0], act[1], act[2])
+        
+
     def deleteAllJobs(self):
         for job in self.cron:
             print(job)
         self.cron.remove_all()
+        self.cron.write()
 
         for act in self.active_actuators:
             act.deactivate.execute()

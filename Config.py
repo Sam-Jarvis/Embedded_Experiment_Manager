@@ -7,12 +7,15 @@ import getpass
 import Actuator
 import Script
 import Sensor
-# actuator re pattern: ^(actuator)\d+$
-# sensor re pattern: ^(sensor)\d{1,}$
+
+act = "^(actuator)\d+$"
+sen = "^(sensor)\d{1,}$"
+gen = "^(general)$"
 
 # TODO: This is current not used, i.e. redundant
 system_user = getpass.getuser()
 parser = configparser.ConfigParser()
+sensor_log_freq = int()
 actuators = []
 sensors = []
 
@@ -30,32 +33,22 @@ class Config:
     # TODO: finish once generate script is done
     def parse(self):
         for sec in parser.sections():
-            name = str()
-            typ = bool()
-            pin = int()
-            frequency = int()
-            length = int()
-            intensity = int()
-            for opt in parser.options(sec):
-                if opt == "name":
-                    name = parser.get(sec, opt)
-                elif opt == "type":
-                    typ = parser.getboolean(sec, opt)
-                elif opt == "pin":
-                    pin = parser.getint(sec, opt)
-                elif opt == "frequency":
-                    frequency = parser.getint(sec, opt)
-                elif opt == "length":
-                    length = parser.getint(sec, opt)
-                elif opt == "intensity":
-                    intensity = parser.getint(sec, opt)
-            if typ:
+            section = parser[sec]
+            sec = sec.lower()
+            if re.match(act, sec):
+                name = str(section["name"])
+                typ = bool(section["type"])
+                pin = int(section["pin"])
+                frequency = int(section["frequency"])
+                length = int(section["length"])
+                intensity = int(section["intensity"])
+
                 actuator = []
 
-                activate_name, activate_path = self.generateScript(system_user, name, True, pin)
+                activate_name, activate_path = self.generateScript(act_name = name, script_tpe = True, pin = pin, log_file = "actuator_log.csv")
                 activate = Script.Script(activate_name, activate_path)
 
-                deactivate_name, deactivate_path = self.generateScript(system_user, name, False, pin)
+                deactivate_name, deactivate_path = self.generateScript(act_name = name, script_tpe = False, pin = pin, log_file = "actuator_log.csv")
                 deactivate = Script.Script(deactivate_name, deactivate_path)
 
                 a = Actuator.Actuator(name, pin, activate, deactivate)
@@ -64,16 +57,25 @@ class Config:
                 actuator.append(length)
                 actuator.append(self.limitIntensity(intensity))
                 actuators.append(actuator)
-            else:
+
+            elif re.match(sen, sec):
+                name = str(section["name"])
+                typ = bool(section["type"])
+                pin = int(section["pin"])
+
                 s = Sensor.Sensor(name, pin)
                 sensors.append(s)
 
-    def generateScript(self, user, act_name, script_tpe, pin, root="home", folder="gpio_scripts"):
+            elif re.match(gen, sec):
+                sensor_log_freq = int(section["sensor_log_frequency"])
 
-        path = f"/{root}/ubuntu/.{folder}"
-        # path = f"/{root}/{user}/.{folder}"
+
+    def generateScript(self, act_name, script_tpe, pin, log_file, root="home", user="ubuntu", folder="gpio_scripts"):
+
+        path = f"/{root}/{user}/.{folder}"
         script_type = str()
-        name = act_name.replace(" ", "_").replace("\"", "")
+        act_name = act_name.replace(" ", "_").replace("\"", "")
+        name = act_name
         full_path = str()
 
         if script_tpe:
@@ -83,7 +85,7 @@ class Config:
             script_type = f"{os.getcwd()}/scripts/gpio_out_deactivate.py"
             name += "_deactivate"
 
-        script = f"sudo python3 {script_type} {pin}"
+        script = f"sudo python3 {script_type} {pin} {path}/{log_file} {act_name}"
 
         if not os.path.exists(path):
             os.mkdir(path)
@@ -95,9 +97,6 @@ class Config:
                 os.chmod(full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
         return name, full_path
-
-    def getLogFrequency():
-        return sensor_log_frequency
 
     def getActuators(self):
         return actuators

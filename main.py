@@ -4,9 +4,13 @@ import Config
 c = Config.Config("config.cfg")
 c.parse()
 
+actuators = c.getActuators()
+
+#c.generateScript(act_name = "test", script_tpe = True, pin = 27, log_file = "actuator.csv")
+
+#c.print_sensors()
+#c.print_actuators()
 s = Scheduler.Scheduler()
-#for act in c.getActuators():
-#    print(f"Name: {act[0].name}, freq: {act[1]}, Len: {act[2]}, Inte: {act[3]}")
-#    s.scheduleActuator(act[0], act[1], act[2])
-# c.getActuators()[0][0].deactivate.execute()
+s.scheduleActuators(actuators)
+#s.deleteAllJobs()
 s.listAllJobs()
