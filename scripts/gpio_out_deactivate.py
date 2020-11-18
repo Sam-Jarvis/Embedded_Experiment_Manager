@@ -12,6 +12,7 @@ parser.add_argument('pin', help="pin number to activate", type=int)
 parser.add_argument('logpath', help="path to actuator log file", type=str)
 parser.add_argument('name', help="name to be stored in the log file", type=str)
 args = parser.parse_args()
+
 pin = args.pin
 log_file = args.logpath
 name = args.name
@@ -23,4 +24,4 @@ GPIO.output(pin, GPIO.LOW)
 GPIO.cleanup()
 
 with open(log_file, "a") as log:
-    log.write(f"{name},{pin},{int(1)},{str(datetime.now())}\n")
+    log.write(f"{name},{pin},{int(0)},{str(datetime.now())}\n")

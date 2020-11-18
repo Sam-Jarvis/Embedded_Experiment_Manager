@@ -45,10 +45,10 @@ class Config:
 
                 actuator = []
 
-                activate_name, activate_path = self.generateScript(act_name = name, script_tpe = True, pin = pin, log_file = "actuator_log.csv")
+                activate_name, activate_path = self.generateScript(dev_name = name, script_tpe = 1, pin = pin, log_file = "actuator_log.csv")
                 activate = Script.Script(activate_name, activate_path)
 
-                deactivate_name, deactivate_path = self.generateScript(act_name = name, script_tpe = False, pin = pin, log_file = "actuator_log.csv")
+                deactivate_name, deactivate_path = self.generateScript(dev_name = name, script_tpe = 0, pin = pin, log_file = "actuator_log.csv")
                 deactivate = Script.Script(deactivate_name, deactivate_path)
 
                 a = Actuator.Actuator(name, pin, activate, deactivate)
@@ -63,29 +63,34 @@ class Config:
                 typ = bool(section["type"])
                 pin = int(section["pin"])
 
-                s = Sensor.Sensor(name, pin)
+                read_name, read_path = self.generateScript(dev_name = name, script_tpe = 2, pin = 22, log_file = "sensor_log.csv")
+                read = Script.Script(read_name, read_path)
+
+                s = Sensor.Sensor(name, pin, read)
                 sensors.append(s)
 
             elif re.match(gen, sec):
                 sensor_log_freq = int(section["sensor_log_frequency"])
 
 
-    def generateScript(self, act_name, script_tpe, pin, log_file, root="home", user="ubuntu", folder="gpio_scripts"):
+    def generateScript(self, dev_name, script_tpe, pin, log_file, root="home", user="ubuntu", folder="gpio_scripts"):
 
         path = f"/{root}/{user}/.{folder}"
         script_type = str()
-        act_name = act_name.replace(" ", "_").replace("\"", "")
+        act_name = dev_name.replace(" ", "_").replace("\"", "")
         name = act_name
         full_path = str()
 
-        if script_tpe:
+        if script_tpe == 1:
             script_type = f"{os.getcwd()}/scripts/gpio_out_activate.py"
             name += "_activate"
-        else:
+        elif script_tpe == 0:
             script_type = f"{os.getcwd()}/scripts/gpio_out_deactivate.py"
             name += "_deactivate"
+        elif script_tpe == 2:
+            script_type = f"{os.getcwd()}/scripts/gpio_in.py"
 
-        script = f"sudo python3 {script_type} {pin} {path}/{log_file} {act_name}"
+        script = f"sudo python3 {script_type} {pin} {path}/{log_file} {dev_name}"
 
         if not os.path.exists(path):
             os.mkdir(path)
@@ -97,6 +102,8 @@ class Config:
                 os.chmod(full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
         return name, full_path
+
+
 
     def getActuators(self):
         return actuators
