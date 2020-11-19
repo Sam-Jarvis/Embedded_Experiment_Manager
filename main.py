@@ -2,15 +2,17 @@ import Scheduler
 import Config
 
 c = Config.Config("config.cfg")
+s = Scheduler.Scheduler()
+
 c.parse()
 
+log_frequency = c.getSensorLogFrequency()
+error_check_frequency = c.getErrorCheckFrequency()
+
 actuators = c.getActuators()
+sensors = c.getSensors()
 
-#c.generateScript(act_name = "test", script_tpe = True, pin = 27, log_file = "actuator.csv")
-
-#c.print_sensors()
-#c.print_actuators()
-s = Scheduler.Scheduler()
 # s.scheduleActuators(actuators)
-# s.deleteAllJobs()
+# s.scheduleSensors(sensors, log_frequency)
+s.scheduleErrorChecks(error_check_frequency)
 s.listAllJobs()
