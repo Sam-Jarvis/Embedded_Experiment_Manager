@@ -7,6 +7,3 @@ class Sensor:
         self.name = name
         self.pin = pin
         self.read = read
-
-    def getValue():
-        pass

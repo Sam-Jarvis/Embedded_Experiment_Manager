@@ -1,8 +1,10 @@
 from crontab import CronTab
-import os
+import subprocess
+import os, stat
+import datetime
 
 class Scheduler:
-"""Responsible for all cron job and time related tasks"""
+    """Responsible for all cron job and time related tasks"""
 
     active_actuators = []   # All actuators that have cron jobs attached to them
 
@@ -10,24 +12,24 @@ class Scheduler:
         self.cron = CronTab(user='root')
 
     def minutesToHours(self, minutes: int) -> tuple:
-    """Converts time in minutes to time in hours and minutes (hours:minutes)"""
+        """Converts time in minutes to time in hours and minutes (hours:minutes)"""
         hours = int(minutes / 60)
         minutes = int(minutes % 60)
         return (hours, minutes)
 
-    def scheduleActuator(self, actuator: Actuator, frequency: int, length: int):
-    """Schedules an activation and deactivation cron job for the given actuator based on the given frequency and length of operation"""
-        print(f"Actuator: {actuator.name}\n")
+    def scheduleActuator(self, actuator, frequency: int, length: int):
+        """Schedules an activation and deactivation cron job for the given actuator based on the given frequency and length of operation"""
+        print(f"Actuator: {actuator.name}")
         if frequency <= 0:
             return
-        print(f"Frequency: {frequency}\n")
+        print(f"Frequency: {frequency}")
         bash_location = '/bin/bash'
 
         if actuator not in self.active_actuators:                           # Ensures actuator doesn't already have an active cron job
             self.active_actuators.append(actuator)
 
         activate_every_x_minutes = 1440 / frequency                         # Time in minutes between each activation
-        print(f"Activates every: {activate_every_x_minutes} minute(s)\n")   
+        print(f"Activates every: {activate_every_x_minutes} minute(s)")   
 
         a_cron_hours = '*'                                                  # Hours place in crontab format (activation)
         a_cron_minutes = '*'                                                # Minutes place in crontab format (activation)
@@ -64,13 +66,13 @@ class Scheduler:
 
 
     def scheduleActuators(self, actuators: list):
-    """Executes the 'scheduleActuator()' function for all actuators"""
+        """Executes the 'scheduleActuator()' function for all actuators"""
         for act in actuators:
             self.scheduleActuator(act[0], act[1], act[2])
     
 
-    def scheduleSensorLogging(self, sensor: Sensor, frequency: int):
-    """Schedules a script that will log the information of the given sensor at the given frequency"""
+    def scheduleSensorLogging(self, sensor, frequency: int):
+        """Schedules a script that will log the information of the given sensor at the given frequency"""
         print(f"Sensor: {sensor.name}\n")
         if frequency <= 0:
             print("returning, frequency < = 0")
@@ -96,13 +98,13 @@ class Scheduler:
 
 
     def scheduleSensors(self, sensors: list, frequency: int):
-    """Executes the 'scheduleSensor()' function for all sensors"""
+        """Executes the 'scheduleSensor()' function for all sensors"""
         for sen in sensors:
             self.scheduleSensorLogging(sen, frequency)
 
 
     def scheduleErrorChecks(self, frequency: int):
-    """Schedules a script that will check for system errors at the given frequency"""
+        """Schedules a script that will check for system errors at the given frequency"""
         check_every = 1440 / frequency
         cron_hours = '*'
         cron_minutes = '*'
@@ -120,8 +122,24 @@ class Scheduler:
         self.cron.write()
 
 
+    def scheduleDemise(self, exp_duration, root="home", user="ubuntu", folder="gpio_scripts"):
+        command = f"sudo python3 {os.getcwd()}/scripts/remove_all_jobs.py"
+        full_path = f"/{root}/{user}/.{folder}/conclude_experiment.sh"
+
+        with open(full_path, "w") as end:
+            end.write(command)
+
+        os.chmod(full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+        
+        hour = datetime.datetime.now().hour
+        minute = datetime.datetime.now().minute
+        at_time = f"{hour}:{minute} + {exp_duration} days"
+
+        subprocess.call(['at', at_time, '-f', full_path])
+
+
     def deleteAllJobs(self):
-    """Removes all active cron jobs"""
+        """Removes all active cron jobs"""
         for job in self.cron:
             print(job)
         self.cron.remove_all()
@@ -131,7 +149,8 @@ class Scheduler:
             act.deactivate.execute()
             self.active_actuators.remove(act)
 
+
     def listAllJobs(self):
-    """Lists (prints) all active cron jobs"""
+        """Lists (prints) all active cron jobs"""
         for job in self.cron:
             print(job)

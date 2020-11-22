@@ -27,13 +27,13 @@ class Config:
         parser.read(cfg)
 
     def limitIntensity(self, intensity: int) -> int: 
-    """Ensures that the intensity value passed to it is not more than 100%"""
+        """Ensures that the intensity value passed to it is not more than 100%"""
         if intensity > 100:
             return 100
         return intensity
 
     def parse(self):
-    """Reads the config file, creates actuators and sensors adding them to the relevant lists and parses the general experiment options"""
+        """Reads the config file, creates actuators and sensors adding them to the relevant lists and parses the general experiment options"""
         for sec in parser.sections():
             section = parser[sec]
             sec = sec.lower()
@@ -77,8 +77,8 @@ class Config:
                 self.error_check_frequency = int(section["error_check_frequency"])
 
 
-    def generateScript(self, dev_name: str, script_tpe: int, pin: int, log_file: str, root="home": str, user="ubuntu": str, folder="gpio_scripts": str) -> str:
-    """Creates a bash script that can be executed by cron. The script wraps a python script with the necessary command line arguments"""
+    def generateScript(self, dev_name: str, script_tpe: int, pin: int, log_file: str, root="home", user="ubuntu", folder="gpio_scripts") -> str:
+        """Creates a bash script that can be executed by cron. The script wraps a python script with the necessary command line arguments"""
         path = f"/{root}/{user}/.{folder}"
         script_type = str()
         act_name = dev_name.replace(" ", "_").replace("\"", "")
@@ -109,39 +109,39 @@ class Config:
 
 
     def getActuators(self) -> list:
-    """Returns the list of actuators to caller"""
+        """Returns the list of actuators to caller"""
         return actuators
 
     def getSensors(self) -> list:
-    """Returns the list of sensors to caller"""
+        """Returns the list of sensors to caller"""
         return sensors
 
     def getSensorLogFrequency(self) -> int:
-    """Returns the sensor log frequency to caller"""
+        """Returns the sensor log frequency to caller"""
         return self.sensor_log_freq
 
     def getExperimentDuration(self) -> int:
-    """Returns the experiment duration to caller"""
+        """Returns the experiment duration to caller"""
         return self.experiment_duration
 
     def getErrorCheckFrequency(self) -> int:
-    """Returns the error checking frequency to caller"""
+        """Returns the error checking frequency to caller"""
         return self.error_check_frequency
 
     # DEBUG METHODS
     def print_config_file(self):
-    """Prints each section of the config file. For each section it prints the options"""
+        """Prints each section of the config file. For each section it prints the options"""
         for sec in parser.sections():
             print(sec)
             for opt in parser.options(sec):
                 print(f"\t {opt}")
 
     def print_actuators(self):
-    """Prints the list of actuators"""
+        """Prints the list of actuators"""
         for i in actuators:
             print(i)
 
     def print_sensors(self):
-    """Prints the list of sensors"""
+        """Prints the list of sensors"""
         for i in sensors:
             print(i.name)
