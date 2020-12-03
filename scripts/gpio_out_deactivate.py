@@ -21,7 +21,7 @@ GPIO.setmode(GPIO.BCM)
 
 GPIO.setup(pin, GPIO.OUT)
 GPIO.output(pin, GPIO.LOW)
-GPIO.cleanup()
+
 
 with open(log_file, "a") as log:
     log.write(f"{name},{pin},{int(0)},{str(datetime.now())}\n")

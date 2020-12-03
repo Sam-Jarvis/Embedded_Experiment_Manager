@@ -24,6 +24,7 @@ if pin in valid_pins:
 
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.HIGH)
+    GPIO.cleanup()
 
     with open(log_file, "a") as log:
         log.write(f"{name},{pin},{int(1)},{str(datetime.now())}\n")

@@ -123,25 +123,21 @@ class Scheduler:
 
 
     def scheduleDemise(self, exp_duration, root="home", user="ubuntu", folder="gpio_scripts"):
-        command = f"sudo python3 {os.getcwd()}/scripts/remove_all_jobs.py"
-        full_path = f"/{root}/{user}/.{folder}/conclude_experiment.sh"
+        """Concludes the experiment by removing all cron jobs"""
+        command = f"sudo rm /{root}/{user}/.{folder}/* && sudo python3 {os.getcwd()}/scripts/remove_all_jobs.py"
+        script_full_path = f"/{root}/{user}/.{folder}/conclude_experiment.sh"
 
-        with open(full_path, "w") as end:
+        with open(script_full_path, "w") as end:
             end.write(command)
 
-        os.chmod(full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
-        
-        hour = datetime.datetime.now().hour
-        minute = datetime.datetime.now().minute
-        at_time = f"{hour}:{minute} + {exp_duration} days"
-
-        subprocess.call(['at', at_time, '-f', full_path])
+        os.chmod(script_full_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+        at_time = f"now + {exp_duration} days"
+        subprocess.call(['at', at_time, '-f', script_full_path])
 
 
     def deleteAllJobs(self):
         """Removes all active cron jobs"""
-        for job in self.cron:
-            print(job)
+        # self.listAllJobs()
         self.cron.remove_all()
         self.cron.write()
 

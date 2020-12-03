@@ -25,12 +25,15 @@ while True:
     try:
         temp = dhtDevice.temperature
         humidity = dhtDevice.humidity
-        with open(log_file, "a") as log:
-            log.write(f"{name},{pin},{temp},{humidity},{str(datetime.now())},{read_attempts}\n")
-        break
- 
-    except RuntimeError as error:
+
+        if (temp != None) and (humidity != None):
+            with open(log_file, "a") as log:
+                log.write(f"{name},{pin},{temp},{humidity},{str(datetime.now())},{read_attempts}\n")
+            break
+
         read_attempts += 1
+    
+    except RuntimeError as error:
         continue
     except Exception as error:
         dhtDevice.exit()

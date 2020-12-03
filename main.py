@@ -20,7 +20,7 @@ def main(config_path):
     s.scheduleErrorChecks(error_check_frequency)
 
     s.listAllJobs()
-    s.scheduleDemise()
+    s.scheduleDemise(experiment_duration)
 
 if __name__ == "__main__":
     main("config.cfg")
